@@ -1,4 +1,3 @@
-import random
 import string
 
 class BFFInterpreter:
@@ -22,31 +21,39 @@ class BFFInterpreter:
             self.tape[i] = ord(char)
 
     def execute(self):
+        commands = {
+            '>': lambda: self.move_head0(1),
+            '<': lambda: self.move_head0(-1),
+            '}': lambda: self.move_head1(1),
+            '{': lambda: self.move_head1(-1),
+            '+': lambda: self.modify_tape(1),
+            '-': lambda: self.modify_tape(-1),
+            '.': lambda: self.copy_head0_to_head1(),
+            ',': lambda: self.copy_head1_to_head0(),
+            '[': lambda: self.jump_forward() if self.tape[self.head0] == 0 else None,
+            ']': lambda: self.jump_backward() if self.tape[self.head0] != 0 else None
+        }
+
         while self.instruction_pointer < len(self.tape):
             command = chr(self.tape[self.instruction_pointer])
-            if command == '>':
-                self.head0 = (self.head0 + 1) % len(self.tape)
-            elif command == '<':
-                self.head0 = (self.head0 - 1) % len(self.tape)
-            elif command == '}':
-                self.head1 = (self.head1 + 1) % len(self.tape)
-            elif command == '{':
-                self.head1 = (self.head1 - 1) % len(self.tape)
-            elif command == '+':
-                self.tape[self.head0] = (self.tape[self.head0] + 1) % 256
-            elif command == '-':
-                self.tape[self.head0] = (self.tape[self.head0] - 1) % 256
-            elif command == '.':
-                self.tape[self.head1] = self.tape[self.head0]
-            elif command == ',':
-                self.tape[self.head0] = self.tape[self.head1]
-            elif command == '[':
-                if self.tape[self.head0] == 0:
-                    self.jump_forward()
-            elif command == ']':
-                if self.tape[self.head0] != 0:
-                    self.jump_backward()
+            if command in commands:
+                commands[command]()
             self.instruction_pointer += 1
+
+    def move_head0(self, step):
+        self.head0 = (self.head0 + step) % len(self.tape)
+
+    def move_head1(self, step):
+        self.head1 = (self.head1 + step) % len(self.tape)
+
+    def modify_tape(self, value):
+        self.tape[self.head0] = (self.tape[self.head0] + value) % 256
+
+    def copy_head0_to_head1(self):
+        self.tape[self.head1] = self.tape[self.head0]
+
+    def copy_head1_to_head0(self):
+        self.tape[self.head0] = self.tape[self.head1]
 
     def jump_forward(self):
         open_brackets = 1

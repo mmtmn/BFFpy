@@ -1,5 +1,8 @@
 import random
 import string
+import matplotlib.pyplot as plt
+import numpy as np
+import zlib
 from bff_interpreter import BFFInterpreter
 
 class PrimordialSoup:
@@ -38,12 +41,52 @@ class PrimordialSoup:
         for program in self.programs:
             print(program)
 
+    def visualize(self, epoch):
+        matrix = [sum(ord(char) for char in program) for program in self.programs]
+        side_length = int(np.ceil(np.sqrt(self.num_programs)))
+        padded_matrix = np.zeros((side_length, side_length))
+        
+        for idx, value in enumerate(matrix):
+            row = idx // side_length
+            col = idx % side_length
+            padded_matrix[row, col] = value
+
+        plt.clf()
+        plt.imshow(padded_matrix, cmap='hot', interpolation='nearest')
+        plt.axis('off')
+        plt.gcf().set_size_inches(10, 10)
+        plt.pause(0.01)
+
+def calculate_high_order_entropy(programs):
+    total_length = sum(len(p) for p in programs)
+    if total_length == 0:
+        return 0
+    shannon_entropy = -sum((freq / total_length) * np.log2(freq / total_length) 
+                           for freq in np.bincount([ord(c) for p in programs for c in p]) if freq > 0)
+    kolmogorov_complexity = sum(len(zlib.compress(p.encode('utf-8'))) for p in programs) / len(programs)
+    normalized_kolmogorov = kolmogorov_complexity / len(programs[0])
+    high_order_entropy = shannon_entropy - normalized_kolmogorov
+    return high_order_entropy
+
 def main():
     soup = PrimordialSoup(num_programs=128, tape_size=64)
-    for epoch in range(1000):  # Run for 1000 epochs
+    plt.ion()
+    complexities = []
+    for epoch in range(1000):
         soup.run_epoch()
         soup.mutate()
-        soup.observe()
+        soup.visualize(epoch)
+        complexity = calculate_high_order_entropy(soup.programs)
+        complexities.append(complexity)
+    plt.ioff()
+    plt.show()
+
+    # Plot complexity over time
+    plt.plot(complexities)
+    plt.xlabel('Epoch')
+    plt.ylabel('High-order Entropy')
+    plt.title('Complexity Over Time')
+    plt.show()
 
 if __name__ == "__main__":
     main()
