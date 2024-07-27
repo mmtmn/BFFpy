@@ -52,7 +52,7 @@ class PrimordialSoup:
             padded_matrix[row, col] = value
 
         plt.clf()
-        plt.imshow(padded_matrix, cmap='hot', interpolation='nearest')
+        plt.imshow(padded_matrix, cmap='Greens', interpolation='nearest')
         plt.axis('off')
         plt.gcf().set_size_inches(10, 10)
         plt.title(f'Epoch {epoch}')
