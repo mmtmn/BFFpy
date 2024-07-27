@@ -55,6 +55,7 @@ class PrimordialSoup:
         plt.imshow(padded_matrix, cmap='hot', interpolation='nearest')
         plt.axis('off')
         plt.gcf().set_size_inches(10, 10)
+        plt.title(f'Epoch {epoch}')
         plt.pause(0.01)
 
 def calculate_high_order_entropy(programs):
@@ -72,7 +73,7 @@ def main():
     soup = PrimordialSoup(num_programs=128, tape_size=64)
     plt.ion()
     complexities = []
-    for epoch in range(1000):
+    for epoch in range(100):
         soup.run_epoch()
         soup.mutate()
         soup.visualize(epoch)
@@ -82,6 +83,7 @@ def main():
     plt.show()
 
     # Plot complexity over time
+    plt.figure()
     plt.plot(complexities)
     plt.xlabel('Epoch')
     plt.ylabel('High-order Entropy')
